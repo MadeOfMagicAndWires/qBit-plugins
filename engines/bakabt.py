@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# VERSION: 0.50
+# VERSION: 0.60
 # AUTHORS: Joost Bremmer (toost.b@gmail.com)
 #
 #  This program is free software: you can redistribute it and/or modify
@@ -16,6 +16,8 @@
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import datetime
+import os
+import tempfile
 
 try:
     import urllib2 as request
@@ -33,10 +35,14 @@ except ImportError:
     import re
 
 # import qBT modules
-#  from novaprinter import prettyPrinter
-#  from helpers import htmlentitydefs
+try:
+    from novaprinter import prettyPrinter
+    from helpers import htmlentitydecode
+except:
+    pass
 
-class BakaBT(object):
+
+class bakabt(object):
     url = 'https://bakabt.me'
     name = 'BakaBT'
     # Which search categories are supported by this search engine and their corresponding id
@@ -50,11 +56,101 @@ class BakaBT(object):
             'tv': 6,        # Live Action
             'pictures': 7}  # Artbooks
 
+    # SET THESE VALUES!!
+    username = "username"
+    password = "password"
+
+    class BakaDownloadParser(HTMLParser):
+        """Parse BakaBT torrent page for download link"""
+        def __init__(self):
+            try:
+                super().__init__()
+            except:
+                # See: http://stackoverflow.com/questions/9698614/super-raises-typeerror-must-be-type-not-classobj-for-new-style-class
+                HTMLParser.__init__(self)
+            self.download = None
+        def handle_starttag(self, tag, attr):
+            if tag == 'a':
+                self.start_a(attr)
+
+        def start_a(self, attr):
+            params = dict(attr)
+            if 'class' in params and params['class'] == 'download_link':
+                self.download = params['href']
+
+    class BakaSearchParser(HTMLParser):
+        """ Parse BakaBT browse page for search results """
+        def __init__(self, res, url):
+            try:
+                super().__init__()
+            except:
+                # See: http://stackoverflow.com/questions/9698614/super-raises-typeerror-must-be-type-not-classobj-for-new-style-class
+                HTMLParser.__init__(self)
+            self.download = None
+            self.results = res
+            self.url = url
+            self.curr = None
+            self.wait_for_title = False
+            self.wait_for_date = False
+            self.wait_for_size = False
+            self.wait_for_seeds = False
+            self.wait_for_peers = False
+
+        def handle_starttag(self, tag, attr):
+            if tag == 'a':
+                self.start_a(attr)
+            elif tag == 'td':
+                self.start_td(attr)
+
+        def start_a(self, attr):
+            params = dict(attr)
+            if 'class' in params and 'title' in params['class']:
+                hit = { 
+                        'link' : self.url + '/' + params['href'], 
+                        'desc_link':self.url + '/' + params['href']}
+                self.curr = hit
+                self.wait_for_title = True
+            elif 'style' in params and params['style'] == "color: #00cc00":
+                self.wait_for_seeds = True
+            elif self.curr is not None and 'seeds' in self.curr:
+                self.wait_for_peers = True
+
+        def start_td(self, attr):
+            params = dict(attr)
+            if 'class' in params and self.curr is not None:
+                if params['class'] == 'added':
+                    pass
+                    #  self.wait_for_date = True
+                elif params['class'] == 'size':
+                    self.wait_for_size = True
+
+        def handle_data(self, data):
+            if self.wait_for_title:
+                self.curr['name'] = data.strip()
+                self.wait_for_title = False
+            elif self.wait_for_date:
+                try:
+                    date = datetime.datetime.strptime(data.strip(), "%d %b '%y")
+                except ValueError:
+                    date = datetime.datetime.now()
+                self.curr['date'] = date.strftime("%Y-%m-%d")
+                self.wait_for_date = False
+            elif self.wait_for_size:
+                self.curr['size'] = data.strip()
+                self.wait_for_size = False
+            elif self.wait_for_seeds:
+                self.curr['seeds'] = int(data.strip())
+                self.wait_for_seeds = False
+            elif self.wait_for_peers:
+                self.curr['leech'] = int(data.strip())
+                self.curr['engine_url'] = self.url[8:]
+                prettyPrinter(self.curr)
+                self.results.append(self.curr)
+                self.curr = None
+                self.wait_for_peers = False
+
     def __init__(self):
         """class initialization, requires personal login information"""
-        # SET THESE VALUES!!
-        self.username = "username"
-        self.password = "password"
 
         # Leave these values alone
         self.useragent = \
@@ -107,97 +203,32 @@ class BakaBT(object):
         info = res.info()
         charset = 'utf-8'
 
-        def htmlentitydecode(s):
-            """convert all HTML entities to unicode readable characters """
-            # First convert alpha entities (such as &eacute;)
-            # (Inspired from http://mail.python.org/pipermail/python-list/2007-June/443813.html)
-            def entity2char(m):
-                entity = m.group(1)
-                if entity in htmlentitydefs.name2codepoint:
-                     return chr(htmlentitydefs.name2codepoint[entity])
-                return u" "  # Unknown entity: We replace with a space.
-            t = re.sub(u'&(%s);' % u'|'.join(htmlentitydefs.name2codepoint), entity2char, s)
-
-            # Then convert numerical entities (such as &#233;)
-            t = re.sub(u'&#(\d+);', lambda x: chr(int(x.group(1))), t)
-
-            # Then convert hexa entities (such as &#x00E9;)
-            return re.sub(u'&#x(\w+);', lambda x: chr(int(x.group(1),16)), t)
-
         dat = htmlentitydecode(dat)
         return dat
 
-    def download_torrent(self, info):
+    def download_torrent(self, url, referer=None):
         """
         Providing this function is optional. It can however be interesting to provide
         your own torrent download implementation in case the search engine in question
         does not allow traditional downloads (for example, cookie-based download)
         """
-        print(download_file(info))
+        file, path = tempfile.mkstemp()
 
-    class BakaParser(HTMLParser):
-        """ Parse BakaBT browse page for search results """
-        def __init__(self, res, url):
-            super().__init__()
-            self.results = res
-            self.url = url
-            self.curr = None
-            self.wait_for_title = False
-            self.wait_for_date = False
-            self.wait_for_size = False
-            self.wait_for_seeds = False
-            self.wait_for_peers = False
+        parser = BakaBT.BakaDownloadParser()
+        if referer:
+            self.sesh.addheaders.append(('referer', referer))
+        res = self._retreive_url(url)
+        parser.feed(res)
+        download = self.url + '/' + parser.download
+        parser.close()
 
-        def handle_starttag(self, tag, attr):
-            if tag == 'a':
-                self.start_a(attr)
-            elif tag == 'td':
-                self.start_td(attr)
+        torrent = self.sesh.open(download)
+        with os.fdopen(file, "wb") as f:
+            f.write(torrent.read())
+        f.close()
+        return path + " " + url
 
-        def start_a(self, attr):
-            params = dict(attr)
-            if 'class' in params and 'title' in params['class']:
-                hit = { 'url' : self.url + '/' + params['href']}
-                self.curr = hit
-                self.wait_for_title = True
-            elif 'style' in params and params['style'] == "color: #00cc00":
-                self.wait_for_seeds = True
-            elif self.curr is not None and 'seeds' in self.curr:
-                self.wait_for_peers = True
-
-        def start_td(self, attr):
-            params = dict(attr)
-            if 'class' in params and self.curr is not None:
-                if params['class'] == 'added':
-                    self.wait_for_date = True
-                elif params['class'] == 'size':
-                    self.wait_for_size = True
-
-        def handle_data(self, data):
-            if self.wait_for_title:
-                self.curr['name'] = data.strip()
-                self.wait_for_title = False
-            elif self.wait_for_date:
-                try:
-                    date = datetime.datetime.strptime(data.strip(), "%d %b '%y")
-                except ValueError:
-                    date = datetime.datetime.now()
-                self.curr['date'] = date.strftime("%Y-%m-%d")
-                self.wait_for_date = False
-            elif self.wait_for_size:
-                self.curr['size'] = data
-                self.wait_for_size = False
-            elif self.wait_for_seeds:
-                self.curr['seeds'] = data
-                self.wait_for_seeds = False
-            elif self.wait_for_peers:
-                self.curr['leechers'] = data
-                self.curr['engine_url'] = "bakabt.me"
-                self.results.append(self.curr)
-                self.curr = None
-                self.wait_for_peers = False
-            #  print(self.results)
-    # DO NOT CHANGE the name and parameters of this function
+   # DO NOT CHANGE the name and parameters of this function
     # This function will be the one called by nova2.py
     def search(self, what, cat='all'):
         # what is a string with the search tokens, already escaped (e.g. "Ubuntu+Linux")
@@ -218,7 +249,7 @@ class BakaBT(object):
                     .format(self.url, what)
 
         hits = []
-        parser = self.BakaParser(hits, self.url)
+        parser = self.BakaSearchParser(hits, self.url)
         i = 0
         while i < 100:
             res = self._retreive_url(url + "&page={}".format(i))
@@ -226,11 +257,6 @@ class BakaBT(object):
             parser.feed(res)
             if len(hits) <= 0:
                 break
-            # Pretty print here
-            print(hits)
-            print(len(hits))
             del hits[:]
             i += 1
         parser.close()
-test = BakaBT()
-test.search('test', 'all')
