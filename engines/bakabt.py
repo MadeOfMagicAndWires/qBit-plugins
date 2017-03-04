@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# VERSION: 0.60
+# VERSION: 1.00
 # AUTHORS: Joost Bremmer (toost.b@gmail.com)
 #
 #  This program is free software: you can redistribute it and/or modify
@@ -206,17 +206,16 @@ class bakabt(object):
         dat = htmlentitydecode(dat)
         return dat
 
-    def download_torrent(self, url, referer=None):
+    def download_torrent(self, info):
         """
         Providing this function is optional. It can however be interesting to provide
         your own torrent download implementation in case the search engine in question
         does not allow traditional downloads (for example, cookie-based download)
         """
         file, path = tempfile.mkstemp()
+        url = info
 
-        parser = BakaBT.BakaDownloadParser()
-        if referer:
-            self.sesh.addheaders.append(('referer', referer))
+        parser = self.BakaDownloadParser()
         res = self._retreive_url(url)
         parser.feed(res)
         download = self.url + '/' + parser.download
@@ -226,7 +225,7 @@ class bakabt(object):
         with os.fdopen(file, "wb") as f:
             f.write(torrent.read())
         f.close()
-        return path + " " + url
+        print(path + " " + url)
 
    # DO NOT CHANGE the name and parameters of this function
     # This function will be the one called by nova2.py
