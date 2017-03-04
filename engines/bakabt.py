@@ -24,15 +24,11 @@ try:
     from urllib import urlencode
     from cookielib import CookieJar
     from HTMLParser import HTMLParser
-    import htmlentitydefs,re
-    chr = unichr
 except ImportError:
     import urllib.request as request
     from urllib.parse import urlencode
     from http.cookiejar import CookieJar
     from html.parser import HTMLParser
-    import html.entities as htmlentitydefs
-    import re
 
 # import qBT modules
 try:
@@ -43,32 +39,45 @@ except:
 
 
 class bakabt(object):
+    """Class used by qBittorrent to search bakabt.me for torrents
+
+    It is important to replace the username and password values with your
+    personal login information. Without this, this plugin will *not* work.
+    """
+
+    # Login information ######################################################
+    #
+    # SET THESE VALUES!!
+    #
+    username = "username"
+    password = "password"
+    ###########################################################################
+
     url = 'https://bakabt.me'
     name = 'BakaBT'
-    # Which search categories are supported by this search engine and their corresponding id
-    # Possible categories are ('all', 'movies', 'tv', 'music', 'games', 'anime', 'software', 'pictures', 'books')
+    # defines which search categories are supported by this search engine
+    # and their corresponding id. Possible categories are:
+    # 'all', 'movies', 'tv', 'music', 'games', 'anime', 'software', 'pictures',
+    # 'books'
     supported_categories = {
             'all': 0,
             'anime': 1,
-            'music': 3,
+            'music': 3,     # Soundtracks
             'books': 4,     # Manga
             'movies': 5,
             'tv': 6,        # Live Action
             'pictures': 7}  # Artbooks
 
-    # SET THESE VALUES!!
-    username = "username"
-    password = "password"
-
     class BakaDownloadParser(HTMLParser):
-        """Parse BakaBT torrent page for download link"""
+        """Parses BakaBT torrent page for download link"""
         def __init__(self):
             try:
                 super().__init__()
             except:
-                # See: http://stackoverflow.com/questions/9698614/super-raises-typeerror-must-be-type-not-classobj-for-new-style-class
+                # See: http://stackoverflow.com/questions/9698614/
                 HTMLParser.__init__(self)
             self.download = None
+
         def handle_starttag(self, tag, attr):
             if tag == 'a':
                 self.start_a(attr)
@@ -79,12 +88,12 @@ class bakabt(object):
                 self.download = params['href']
 
     class BakaSearchParser(HTMLParser):
-        """ Parse BakaBT browse page for search results """
+        """ Parses BakaBT browse page for search results and prints them"""
         def __init__(self, res, url):
             try:
                 super().__init__()
             except:
-                # See: http://stackoverflow.com/questions/9698614/super-raises-typeerror-must-be-type-not-classobj-for-new-style-class
+                # See: http://stackoverflow.com/questions/9698614/
                 HTMLParser.__init__(self)
             self.download = None
             self.results = res
@@ -105,9 +114,9 @@ class bakabt(object):
         def start_a(self, attr):
             params = dict(attr)
             if 'class' in params and 'title' in params['class']:
-                hit = { 
-                        'link' : self.url + '/' + params['href'], 
-                        'desc_link':self.url + '/' + params['href']}
+                hit = {
+                        'link': self.url + '/' + params['href'],
+                        'desc_link': self.url + '/' + params['href']}
                 self.curr = hit
                 self.wait_for_title = True
             elif 'style' in params and params['style'] == "color: #00cc00":
@@ -130,7 +139,8 @@ class bakabt(object):
                 self.wait_for_title = False
             elif self.wait_for_date:
                 try:
-                    date = datetime.datetime.strptime(data.strip(), "%d %b '%y")
+                    date = datetime.datetime.strptime(data.strip(),
+                                                      "%d %b '%y")
                 except ValueError:
                     date = datetime.datetime.now()
                 self.curr['date'] = date.strftime("%Y-%m-%d")
@@ -152,9 +162,9 @@ class bakabt(object):
     def __init__(self):
         """class initialization, requires personal login information"""
 
-        # Leave these values alone
-        self.useragent = \
-                'Mozilla/5.0 (X11; Linux i686; rv:38.0) Gecko/20100101 Firefox/38.0'
+        self.ua = \
+            'Mozilla/5.0 (X11; Linux i686; rv:38.0) ' + \
+            'Gecko/20100101 Firefox/38.0'
         self.sesh = None
 
         self._login(self.username, self.password)
@@ -165,28 +175,26 @@ class bakabt(object):
         # Build opener
         cj = CookieJar()
         params = {
-                'username' : self.username,
+                'username': self.username,
                 'password': self.password,
                 'returnto': 'browse.php'}
         sesh = request.build_opener(request.HTTPCookieProcessor(cj))
 
         # change user-agent
         sesh.addheaders.pop()
-        sesh.addheaders.append(('User-Agent', self.useragent))
-
+        sesh.addheaders.append(('User-Agent', self.ua))
 
         # send request
         try:
-            res = sesh.open(
+            sesh.open(
                     self.url + '/login.php',
                     urlencode(params).encode('utf-8'))
             self.sesh = sesh
         except request.URLError as errorno:
             print("Connection Error: {}".format(errorno.reason))
 
-
     def _retreive_url(self, url):
-        """Return the content of the url page as a string """
+        """Return the HTML content of url page as a string """
         try:
             res = self.sesh.open(url)
         except request.URLError as errorno:
@@ -194,25 +202,21 @@ class bakabt(object):
             return ""
 
         charset = 'utf-8'
+        info = res.info()
         try:
-           _, charset = info['Content-Type'].split('charset=')
+            _, charset = info['Content-Type'].split('charset=')
         except:
-           pass
+            pass
         dat = res.read()
         dat = dat.decode(charset, 'replace')
-        info = res.info()
-        charset = 'utf-8'
 
         dat = htmlentitydecode(dat)
         return dat
 
     def download_torrent(self, info):
-        """
-        Providing this function is optional. It can however be interesting to provide
-        your own torrent download implementation in case the search engine in question
-        does not allow traditional downloads (for example, cookie-based download)
-        """
+        """Retrieve and save url as a temporary file."""
         file, path = tempfile.mkstemp()
+        print(info)
         url = info
 
         parser = self.BakaDownloadParser()
@@ -225,18 +229,19 @@ class bakabt(object):
         with os.fdopen(file, "wb") as f:
             f.write(torrent.read())
         f.close()
-        print(path + " " + url)
+        print(path + " " + download)
 
-   # DO NOT CHANGE the name and parameters of this function
+    # DO NOT CHANGE the name and parameters of this function
     # This function will be the one called by nova2.py
     def search(self, what, cat='all'):
-        # what is a string with the search tokens, already escaped (e.g. "Ubuntu+Linux")
-        # cat is the name of a search category in ('all', 'movies', 'tv', 'music', 'games', 'anime', 'software', 'pictures', 'books')
-        #
-        # Here you can do what you want to get the result from the
-        # search engine website.
-        # everytime you parse a result line, store it in a dictionary
-        # and call the prettyPrint(your_dict) function
+        """
+        Retreive and parse all BakaBT search results by category and query.
+
+        Parameters:
+        :param what: a string with the search tokens, already escaped
+                     (e.g. "Ubuntu+Linux")
+        :param cat:  the name of a search category, see supported_categories.
+        """
         if cat in self.supported_categories:
             url = "{0}/browse.php?limit=100&ordertype=seeders&q={1}&cat={2}"\
                     .format(
