@@ -1,0 +1,2 @@
+[filter "personalinfo"]
+	clean = sed -e \"s/username =.*/username = \\\"username\\\"/\" -e \"s/password =.*/password = \\\"password\\\"/\"
