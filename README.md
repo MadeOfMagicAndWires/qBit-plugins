@@ -25,7 +25,7 @@ You can do this by editing these specific lines (lineno. 52:53).
 Now replace the "username" and "password" with *your* username and password, surrounded by quotation marks.  
 So if your username is `foobar` and your `password` is bazqux these lines should read:
 ```python
-	...
+    ...
     # SET THESE VALUES
     #
     username = "foobar"
@@ -53,3 +53,5 @@ F.A.Q
 
   Because the plugin logs you in for every search, this means that the torrent files you open using it are your
   personal ones. It's effectively no different than if you'd visit the site and download the torrent manually.
+
+![](https://bakabt.me/resources/img/bg_1920.png)
