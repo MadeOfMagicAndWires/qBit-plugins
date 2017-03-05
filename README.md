@@ -34,7 +34,7 @@ So if your username is `foobar` and your `password` is bazqux these lines should
 ```
 
 After you've done this you can add this plugin to qBittorrent by going:  
- `Search tab` 🡪 `Search Plugins`🡪 `Install a new one` 🡪 Selecting the `bakabt.py` file.
+ <kbd>Search tab</kbd> 🡪 <kbd>Search Plugins</kbd> 🡪 <kbd>Install a new one</kbd> 🡪 Selecting the `bakabt.py` file.
 
 Or by manually copying the `bakabt.py` to the following location:
   * Linux: `~/.local/share/data/qBittorrent/nova/engines/bakabt.py`

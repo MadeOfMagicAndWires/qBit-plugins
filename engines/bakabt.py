@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# VERSION: 1.00
+# VERSION: 1.0.1
 # AUTHORS: Joost Bremmer (toost.b@gmail.com)
 #
 #  This program is free software: you can redistribute it and/or modify
