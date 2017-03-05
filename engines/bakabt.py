@@ -97,7 +97,7 @@ class bakabt(object):
                 HTMLParser.__init__(self)
             self.download = None
             self.results = res
-            self.url = url
+            self.engine_url = url
             self.curr = None
             self.wait_for_title = False
             self.wait_for_date = False
@@ -115,8 +115,8 @@ class bakabt(object):
             params = dict(attr)
             if 'class' in params and 'title' in params['class']:
                 hit = {
-                        'link': self.url + '/' + params['href'],
-                        'desc_link': self.url + '/' + params['href']}
+                        'link': self.engine_url + '/' + params['href'],
+                        'desc_link': self.engine_url + '/' + params['href']}
                 self.curr = hit
                 self.wait_for_title = True
             elif 'style' in params and params['style'] == "color: #00cc00":
@@ -153,7 +153,7 @@ class bakabt(object):
                 self.wait_for_seeds = False
             elif self.wait_for_peers:
                 self.curr['leech'] = int(data.strip())
-                self.curr['engine_url'] = self.url[8:]
+                self.curr['engine_url'] = self.engine_url
                 prettyPrinter(self.curr)
                 self.results.append(self.curr)
                 self.curr = None
@@ -216,7 +216,6 @@ class bakabt(object):
     def download_torrent(self, info):
         """Retrieve and save url as a temporary file."""
         file, path = tempfile.mkstemp()
-        print(info)
         url = info
 
         parser = self.BakaDownloadParser()
@@ -229,7 +228,8 @@ class bakabt(object):
         with os.fdopen(file, "wb") as f:
             f.write(torrent.read())
         f.close()
-        print(path + " " + download)
+        # Print file path and url.
+        print(path+" "+download)
 
     # DO NOT CHANGE the name and parameters of this function
     # This function will be the one called by nova2.py
@@ -255,11 +255,11 @@ class bakabt(object):
         hits = []
         parser = self.BakaSearchParser(hits, self.url)
         i = 0
-        while i < 100:
+        while True:
             res = self._retreive_url(url + "&page={}".format(i))
             #  print(res)
             parser.feed(res)
-            if len(hits) <= 0:
+            if len(hits) < 100:
                 break
             del hits[:]
             i += 1
