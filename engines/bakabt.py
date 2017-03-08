@@ -230,6 +230,7 @@ class bakabt(object):
         f.close()
         # Print file path and url.
         print(path+" "+download)
+        parser.close()
 
     # DO NOT CHANGE the name and parameters of this function
     # This function will be the one called by nova2.py
