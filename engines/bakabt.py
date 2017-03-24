@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-# VERSION: 1.0.2
-# AUTHORS: Joost Bremmer (toost.b@gmail.com)
+#VERSION: 1.2
+#AUTHORS: Joost Bremmer (toost.b@gmail.com)
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
