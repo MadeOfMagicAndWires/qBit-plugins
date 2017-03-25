@@ -258,9 +258,8 @@ class bakabt(object):
         i = 0
         while True:
             res = self._retreive_url(url + "&page={}".format(i))
-            #  print(res)
             parser.feed(res)
-            if len(hits) <= 100:
+            if len(hits) < 100:
                 break
             del hits[:]
             i += 1
