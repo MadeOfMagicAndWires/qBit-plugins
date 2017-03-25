@@ -151,8 +151,3 @@ class linuxtracker(object):
             page += 1
 
         parser.close()
-
-
-if __name__ is '__main__':
-    engine = linuxtracker()
-    engine.search("Arch+Linux")
