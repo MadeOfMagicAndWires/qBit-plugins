@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-#VERSION: 1.2
+#VERSION: 1.3
 #AUTHORS: Joost Bremmer (toost.b@gmail.com)
 #
 #  This program is free software: you can redistribute it and/or modify
@@ -187,7 +187,7 @@ class bakabt(object):
         # send request
         try:
             sesh.open(
-                    self.url + '/login.php',
+                    self.url + '/splash.php',
                     urlencode(params).encode('utf-8'))
             self.sesh = sesh
         except request.URLError as errorno:
