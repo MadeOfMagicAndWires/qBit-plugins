@@ -2,9 +2,8 @@
 *
 
 # Except the following files
-!engines/bakabt.py
-!engines/template.py
-!engines/linuxtracker.py
+!*/
+!engines/*
 !README.md
 !INSTALL
 !LICENCE
