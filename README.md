@@ -7,6 +7,9 @@ well-seeded and complete anime-related materials.
 [linuxtracker](http://linuxtracker.org) is a tracker for linux torrents,
 including distro .iso files and software tarballs.
 
+[Nyaa.pantsu](https://nyaa.pantsu.cat) and [Nyaa.si](https://nyaa.si) are
+drop-in replacements for the now removed NyaaTorrents.
+
 Installation
 ------------
 
@@ -26,10 +29,15 @@ Or by manually copying the `bakabt.py` to the following location:
   * Mac: ``~/Library/Application Support/qBittorrent/nova/engines/linuxtracker.py`
   * Windows: `C:\Documents and Settings\username\Local Settings\Application Data\qBittorrent\nova\engines\linuxtracker.py`
 
+### Nyaas
+Take [this](engines/nyaapantsu.py) or [this](engines/nyaasi.py) file and follow
+the steps above. I will try to work on a plugin that searches Nyaa.si and Nyaa.pantsu
+both.
+
 ### BakaBT
 Because BakaBT requires your login info, this plugin requires a bit more work than most.
 
-1. Firstly you'll need an ~~[account](https://bakabt.me/signup.php)~~ 
+1. Firstly you'll need an ~~[account](https://bakabt.me/signup.php)~~
    (Admission currently closed)
 2. Then you need to put your login information directly into the [plugin file](engines/bakabt.py):
 

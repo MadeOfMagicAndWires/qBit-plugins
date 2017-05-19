@@ -32,7 +32,7 @@ except:
 class nyaasi(object):
     """Class used by qBittorrent to search for torrents"""
 
-    url = 'http://nyaa.si'
+    url = 'https://nyaa.si'
     name = 'Nyaa.si'
     # defines which search categories are supported by this search engine
     # and their corresponding id. Possible categories are:
