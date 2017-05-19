@@ -31,7 +31,12 @@ Or by manually copying the `bakabt.py` to the following location:
 
 ### Nyaas
 Take [this](engines/nyaapantsu.py) or [this](engines/nyaasi.py) file and follow
-the steps above. I will try to work on a plugin that searches Nyaa.si and Nyaa.pantsu
+the steps above. 
+
+**Please note that Nyaa.pantsu is somewhat unstable and that it might not
+work. The plugin works, you might just have to try it a few times.**
+
+I am working on a plugin that searches Nyaa.si and Nyaa.pantsu
 both.
 
 ### BakaBT
