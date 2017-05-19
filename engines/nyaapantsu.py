@@ -1,4 +1,4 @@
-#ndle -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 #VERSION: 1.0
 #AUTHORS: Joost Bremmer (toost.b@gmail.com)
 #
@@ -39,7 +39,7 @@ class nyaapantsu(object):
     # 'all', 'movies', 'tv', 'music', 'games', 'anime', 'software', 'pictures',
     # 'books'
     supported_categories = {
-            'all' : '_',
+            'all': '_',
             'anime': '3_',
             'books': '4_',
             'music': '2_',
@@ -102,10 +102,9 @@ class nyaapantsu(object):
                 self.curr = None
                 self.td_counter = -1
 
-
         def handle_data(self, data):
             if self.td_counter == 0:
-                if not 'name' in self.curr:
+                if 'name' not in self.curr:
                     self.curr['name'] = ''
                 self.curr['name'] += data.strip()
             elif self.td_counter == 1:
@@ -120,7 +119,6 @@ class nyaapantsu(object):
                     self.curr['leech'] = -1
             elif self.td_counter == 5:
                 self.curr['size'] = data.strip()
-
 
     def __init__(self):
         """class initialization"""
@@ -141,7 +139,8 @@ class nyaapantsu(object):
         hits = []
         parser = self.NyaaPantsuParser(hits, self.url)
         while True:
-            url = str("{0}/search/{1}?s=0&sort=5&order=false&max=300&c={2}&q={3}"
+            url = str(
+                    "{0}/search/{1}?s=0&sort=5&order=false&max=300&c={2}&q={3}"
                     .format(self.url,
                             page,
                             self.supported_categories.get(cat),

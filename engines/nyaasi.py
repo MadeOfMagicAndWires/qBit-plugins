@@ -39,7 +39,7 @@ class nyaasi(object):
     # 'all', 'movies', 'tv', 'music', 'games', 'anime', 'software', 'pictures',
     # 'books'
     supported_categories = {
-            'all' : '0_0',
+            'all': '0_0',
             'anime': '1_0',
             'books': '3_0',
             'music': '2_0',
@@ -77,7 +77,7 @@ class nyaasi(object):
             if 'title' in params and params['href'].startswith('/view/'):
                 hit = {
                         'name': params['title'],
-                        'desc_link' : self.engine_url + params['href']}
+                        'desc_link': self.engine_url + params['href']}
                 if not self.curr:
                     hit['engine_url'] = self.engine_url
                     self.curr = hit
@@ -97,7 +97,6 @@ class nyaasi(object):
                 self.results.append(self.curr)
                 self.curr = None
                 self.td_counter = -1
-
 
         def handle_data(self, data):
             # These fields matter
@@ -137,9 +136,9 @@ class nyaasi(object):
         """
 
         url = str("{0}/?f=0&s=seeders&o=desc&c={1}&q={2}"
-                .format(self.url,
-                        self.supported_categories.get(cat),
-                        what))
+                  .format(self.url,
+                          self.supported_categories.get(cat),
+                          what))
 
         hits = []
         page = 1
@@ -156,5 +155,3 @@ class nyaasi(object):
             page += 1
 
         parser.close()
-
-
