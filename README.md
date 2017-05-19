@@ -10,7 +10,7 @@ including distro .iso files and software tarballs.
 [Nyaa.pantsu](https://nyaa.pantsu.cat) and [Nyaa.si](https://nyaa.si) are
 drop-in replacements for the now removed NyaaTorrents.
 
-[Skytorrents](https://skytorrents.in) is a clean, ad-free, privacy focused torrent search engine. 
+[Sky Torrents](https://skytorrents.in) is a clean, ad-free, privacy focused torrent search engine. 
 
 Installation
 ------------
@@ -38,7 +38,7 @@ the steps above.
 **Please note that Nyaa.pantsu is somewhat unstable and that it might not
 work. The plugin works, you might just have to try it a few times.**
 
-### Skytorrents
+### Sky Torrents
 Take [this](engines/skytorrents.py) file and follow the steps above.
 
 ### BakaBT

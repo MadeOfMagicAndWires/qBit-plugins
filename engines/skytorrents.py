@@ -33,7 +33,7 @@ class skytorrents(object):
     """Class used by qBittorrent to search for torrents"""
 
     url = 'https://skytorrents.in'
-    name = 'SkyTorrents'
+    name = 'Sky Torrents'
     # defines which search categories are supported by this search engine
     # and their corresponding id. Possible categories are:
     # 'all', 'movies', 'tv', 'music', 'games', 'anime', 'software', 'pictures',
@@ -73,7 +73,7 @@ class skytorrents(object):
             elif 'href' in params and params['href'].startswith('magnet:?'):
                 self.curr['link'] = params['href']
                 self.td_counter += 1
-                    
+
         def handle_td(self):
             if self.td_counter >= 0:
                 self.td_counter += 1
@@ -102,7 +102,6 @@ class skytorrents(object):
                 except:
                     self.curr['leech'] = -1
 
-
     # DO NOT CHANGE the name and parameters of this function
     # This function will be the one called by nova2.py
     def search(self, what, cat='all'):
@@ -121,10 +120,10 @@ class skytorrents(object):
         while True:
             url = str(
                 "{site}/search/{cat}/ed/{page}/?q={query}"
-                .format(site = self.url,
-                        cat = cat,
-                        page = page,
-                        query = what))
+                .format(site=self.url,
+                        cat=cat,
+                        page=page,
+                        query=what))
             res = retrieve_url(url)
             parser.feed(res)
             for each in hits:
