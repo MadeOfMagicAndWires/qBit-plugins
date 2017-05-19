@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-#VERSION: 1.0
+#VERSION: 1.2
 #AUTHORS: Joost Bremmer (toost.b@gmail.com)
 #
 #  This program is free software: you can redistribute it and/or modify
@@ -49,6 +49,8 @@ class skytorrents(object):
                 # See: http://stackoverflow.com/questions/9698614/
                 HTMLParser.__init__(self)
             self.results = res
+            self.total   = None
+            self.find_total = False
             self.engine_url = url
             self.curr = None
             self.td_counter = -1
@@ -61,6 +63,8 @@ class skytorrents(object):
         def handle_endtag(self, tag):
             if tag == 'td':
                 self.handle_td()
+            if tag == 'h3':
+                self.handle_h3()
 
         def handle_a(self, attr):
             params = dict(attr)
@@ -85,6 +89,10 @@ class skytorrents(object):
                 self.curr = None
                 self.td_counter = -1
 
+        def handle_h3(self):
+            if not isinstance(self.total, int):
+                self.find_total = True
+
         def handle_data(self, data):
             # Catch size
             if self.td_counter == 1:
@@ -101,6 +109,14 @@ class skytorrents(object):
                     self.curr['leech'] = int(data.strip())
                 except:
                     self.curr['leech'] = -1
+            # Catch result total
+            elif self.find_total:
+                text = data.strip().split()
+                try:
+                    self.total = int(text[1])
+                except:
+                    pass
+                self.find_total = False
 
     # DO NOT CHANGE the name and parameters of this function
     # This function will be the one called by nova2.py
@@ -114,9 +130,10 @@ class skytorrents(object):
         :param cat:  the name of a search category, see supported_categories.
         """
 
-        hits = []
+        hits = 0
+        results = []
         page = 1
-        parser = self.SkySearchParser(hits, self.url)
+        parser = self.SkySearchParser(results, self.url)
         while True:
             url = str(
                 "{site}/search/{cat}/ed/{page}/?q={query}"
@@ -126,13 +143,17 @@ class skytorrents(object):
                         query=what))
             res = retrieve_url(url)
             parser.feed(res)
-            for each in hits:
+            for each in results:
                 prettyPrinter(each)
 
-            # SkyTorrents serves max 25 pages of 40 results,
-            # Any further requests get redirected to the 1st
-            if len(hits) >= 1000:
+            # SkyTorrents redirects errornous requests to page 1
+            # so we need to check against the total results.
+            hits += len(results)
+            if hits >= parser.total:
+                print(parser.total)
                 break
+
+            del results[:]
             page += 1
 
         parser.close()
