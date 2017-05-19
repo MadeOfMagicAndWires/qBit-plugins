@@ -120,9 +120,6 @@ class nyaasi(object):
                 else:
                     pass
 
-    def __init__(self):
-        """class initialization"""
-
     # DO NOT CHANGE the name and parameters of this function
     # This function will be the one called by nova2.py
     def search(self, what, cat='all'):

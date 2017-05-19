@@ -120,9 +120,6 @@ class nyaapantsu(object):
             elif self.td_counter == 5:
                 self.curr['size'] = data.strip()
 
-    def __init__(self):
-        """class initialization"""
-
     # DO NOT CHANGE the name and parameters of this function
     # This function will be the one called by nova2.py
     def search(self, what, cat='all'):
