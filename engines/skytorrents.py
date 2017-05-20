@@ -53,6 +53,7 @@ class skytorrents(object):
             self.find_total = False
             self.engine_url = url
             self.curr = None
+            self.catch_name = False
             self.td_counter = -1
 
         def handle_starttag(self, tag, attr):
@@ -70,8 +71,8 @@ class skytorrents(object):
             params = dict(attr)
             if 'href' in params and params['href'].startswith('/info'):
                 hit = {'desc_link': self.engine_url + params['href'],
-                       'engine_url': self.engine_url,
-                       'name': params['title']}
+                       'engine_url': self.engine_url}
+                self.catch_name = True
                 if not self.curr:
                     self.curr = hit
             elif 'href' in params and params['href'].startswith('magnet:?'):
@@ -94,6 +95,10 @@ class skytorrents(object):
                 self.find_total = True
 
         def handle_data(self, data):
+            # Catch name
+            if self.catch_name:
+                self.curr['name'] = data.strip()
+                self.catch_name = False
             # Catch size
             if self.td_counter == 1:
                 self.curr['size'] = data.strip()
