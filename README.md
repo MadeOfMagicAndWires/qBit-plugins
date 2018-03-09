@@ -78,3 +78,9 @@ F.A.Q
 
   Because the plugin logs you in for every search, this means that the torrent files you open using it are your
   personal ones. It's effectively no different than if you'd visit the site and download the torrent manually.
+
+
+### License
+
+All files are distributed under the GPL licence **except the following files, which are licenced under BSD**:
++ `engines/yts.py`
