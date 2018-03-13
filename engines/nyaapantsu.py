@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-#VERSION: 1.0
+#VERSION: 1.2
 #AUTHORS: Joost Bremmer (toost.b@gmail.com)
 #
 #  This program is free software: you can redistribute it and/or modify
@@ -16,8 +16,10 @@
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
+from enum import Enum
 try:
     from HTMLParser import HTMLParser
+
 except ImportError:
     from html.parser import HTMLParser
 
@@ -50,6 +52,16 @@ class nyaapantsu(object):
 
     class NyaaPantsuParser(HTMLParser):
         """ Parses Nyaa.pantsu browse page for search resand prints them"""
+
+        class DataType(Enum):
+            """Enumeration to keep track of the TD Type to use in handle_data()'"""
+            NONE = 0
+            NAME = 1
+            SEEDS = 2
+            LEECH = 3
+            SIZE = 4
+
+
         def __init__(self, res=(), url="https://nyaa.pantsu.cat"):
             try:
                 super().__init__()
@@ -60,19 +72,16 @@ class nyaapantsu(object):
             self.engine_url = url
             self.results = res
             self.curr = None
-            self.td_counter = -1
-            self.wait_for_name = False
+            self.td_type = self.DataType.NONE
 
         def handle_starttag(self, tag, attr):
-            """Tell the parser what to do with which tags"""
+            """Calls element specific functions based on tag."""
             if tag == 'a':
                 self.start_a(attr)
             if tag == 'tr':
                 self.start_tr(attr)
-
-        def handle_endtag(self, tag):
             if tag == 'td':
-                self.start_td()
+                self.start_td(attr)
 
         def start_tr(self, attr):
             params = dict(attr)
@@ -85,40 +94,72 @@ class nyaapantsu(object):
             if 'href' in params and params['href'].startswith('/view/'):
                 if self.curr:
                     self.curr['desc_link'] = self.engine_url + params['href']
-                    self.td_counter += 1
+                # also get name from handle_data()
+                self.td_type = self.DataType.NAME
+            # get torrent magnet link
             elif 'href' in params and params['href'].startswith("magnet:?"):
                 if self.curr:
                     self.curr['link'] = params['href']
 
-        def start_td(self):
-            # update timers
-            if self.td_counter >= 0:
-                self.td_counter += 1
+        def start_td(self, attr):
+            """Parses TD elements and sets self.td_type based on its html class.
 
-            # At 5 we're done, add the hit to the results,
-            # then reset the counters for the next result
-            if self.td_counter > 6:
+            If last TD element for the current hit is reached it appends it to
+            results and cleans up.
+            """
+            params = dict(attr)
+
+            # get seeds from handle_data()
+            if 'class' in params and params['class'].startswith("tr-se"):
+                self.td_type = self.DataType.SEEDS
+            # get leechers from handle_data()
+            elif 'class' in params and params['class'].startswith("tr-le"):
+                self.td_type = self.DataType.LEECH
+            # get size from handle_data()
+            elif 'class' in params and params['class'].startswith("tr-size"):
+                self.td_type = self.DataType.SIZE
+            # we've reached the end of this result; save it and clean up.
+            elif 'class' in params and params['class'].startswith("tr-date"):
                 self.results.append(self.curr)
+                self.td_type = self.DataType.NONE
                 self.curr = None
-                self.td_counter = -1
+            # default: current innerContent does not concern us: pass.
+            else:
+                self.td_type = self.DataType.NONE
 
         def handle_data(self, data):
-            if self.td_counter == 0:
+            """Strip textContent data for search result based on td type"""
+            # Get result name
+            if self.td_type == self.DataType.NAME:
                 if 'name' not in self.curr:
                     self.curr['name'] = ''
                 self.curr['name'] += data.strip()
-            elif self.td_counter == 1:
+                self.td_type = self.DataType.NONE
+            # Get no. of seeds
+            elif self.td_type == self.DataType.SEEDS:
                 try:
                     self.curr['seeds'] = int(data.strip())
                 except:
                     self.curr['seeds'] = -1
-            elif self.td_counter == 2:
+                finally:
+                    self.td_type = self.DataType.NONE
+            # Get no. of leechers
+            elif self.td_type == self.DataType.LEECH:
                 try:
                     self.curr['leech'] = int(data.strip())
                 except:
                     self.curr['leech'] = -1
-            elif self.td_counter == 5:
+                finally:
+                    self.td_type = self.DataType.NONE
+            # Get size
+            elif self.td_type == self.DataType.SIZE:
+                size = data.strip()
                 self.curr['size'] = data.strip()
+                self.td_type = self.DataType.NONE
+            # Default: self.td_type is unset, current textConent is not
+            # interesting, do nothing.
+            else:
+                pass
 
     # DO NOT CHANGE the name and parameters of this function
     # This function will be the one called by nova2.py
