@@ -40,7 +40,7 @@ class linuxtracker(object):
     # 'all', 'movies', 'tv', 'music', 'games', 'anime', 'software', 'pictures',
     # 'books'
     supported_categories = {
-            'software': 0}
+            'all':'all', 'software': 0}
 
     class LinuxSearchParser(HTMLParser):
         """ Parses BakaBT browse page for search results and prints them"""
