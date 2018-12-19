@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-#VERSION: 1.0
+#VERSION: 1.1
 #AUTHORS: Joost Bremmer (toost.b@gmail.com)
 #
 #  This program is free software: you can redistribute it and/or modify
@@ -39,8 +39,7 @@ class linuxtracker(object):
     # and their corresponding id. Possible categories are:
     # 'all', 'movies', 'tv', 'music', 'games', 'anime', 'software', 'pictures',
     # 'books'
-    supported_categories = {
-            'software': 0}
+    supported_categories = { 'all' : 0, 'software': 0}
 
     class LinuxSearchParser(HTMLParser):
         """ Parses BakaBT browse page for search results and prints them"""
