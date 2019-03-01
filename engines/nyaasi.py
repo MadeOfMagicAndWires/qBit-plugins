@@ -74,7 +74,7 @@ class nyaasi(object):
         def start_a(self, attr):
             params = dict(attr)
             # get torrent name
-            if 'title' in params and params['href'].startswith('/view/'):
+            if 'title' in params and 'class' not in params and params['href'].startswith('/view/'):
                 hit = {
                         'name': params['title'],
                         'desc_link': self.engine_url + params['href']}
