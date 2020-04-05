@@ -77,5 +77,4 @@ F.A.Q
 
 ### License
 
-All files are distributed under the GPL licence **except the following files, which are licenced under BSD**:
-+ `engines/yts.py`
+All files are distributed under the GPL licence
