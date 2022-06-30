@@ -43,7 +43,7 @@ class sukebeisi(object):
     # If you wish to enable other categories by editing this list or by using one of the unused supported categories (music, software) they are:
     # Top level "Art" category = '1_0'
     # Top level "Real Life" category = '2_0'
-    # "Art - Doujinshi" and "Art - Pictures" are included as commented examples below.
+    # "Art - Manga" and "Art - Pictures" are included as commented examples below.
     # Simply replace line 53 or 55 with the examples below
     #   'books': '1_4',
     #   'pictures': '1_5',
