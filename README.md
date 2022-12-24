@@ -7,8 +7,8 @@ well-seeded and complete anime-related materials.
 [linuxtracker](http://linuxtracker.org) is a tracker for linux torrents,
 including distro .iso files and software tarballs.
 
-[Nyaa.pantsu](https://nyaa.pantsu.cat) and [Nyaa.si](https://nyaa.si) are
-drop-in replacements for the now removed NyaaTorrents.
+[Nyaa.si](https://nyaa.si) is a drop-in replacements for the now
+removed NyaaTorrents.
 
 Installation
 ------------
@@ -19,7 +19,7 @@ following [link](https://github.com/MadeOfMagicAndWires/qBit-plugins/raw/master/
 
 After you've done this you can add this plugin to qBittorrent by going:
 
-<kbd>Search tab</kbd> 🡪 <kbd>Search Plugins</kbd> 🡪 <kbd>Install a new one</kbd>  
+<kbd>Search tab</kbd> 🡪 <kbd>Search Plugins</kbd> 🡪 <kbd>Install a new one</kbd>
 <kbd>Local File</kbd> then select the plugin file
  **or**
 <kbd>Web Link</kbd> then insert the link you copied.
@@ -29,12 +29,33 @@ Or by manually copying the `bakabt.py` to the following location:
   * Mac: ``~/Library/Application Support/qBittorrent/nova/engines/linuxtracker.py`
   * Windows: `C:\Documents and Settings\username\Local Settings\Application Data\qBittorrent\nova\engines\linuxtracker.py`
 
-### Nyaas
-Take [this](engines/nyaapantsu.py) or [this](engines/nyaasi.py) file and follow
-the steps above. 
+### Nyaa.si
+Take [this](engines/nyaasi.py) file and follow the steps above.
 
-**Please note that Nyaa.pantsu is somewhat unstable and that it might not
-work. The plugin works, you might just have to try it a few times.**
+#### Downloading .torrent files instead of magnet links
+This requires an extra step in that you haveto manually edit the
+[nyaa.si](engines/nyaasi.py) file before (or after) installing it using
+qBittorrent.
+
+The plugin defaults to using magnet links, but in order to download torrent
+files instead you can edit line **41**:
+
+```python
+    # Whether to use magnet links or download torrent files ###################
+    #
+    # Set to 'True' to use magnet links, or 'False' to use torrent files
+    use_magent_links = True
+    #
+    ###########################################################################
+```
+
+by setting the `use_magnet_links` variable to *False*
+(the capitalisation matters here) instead search results will link to torrent
+files instead. Once you've installed any version >=1.2
+any changes to this setting should take immediate effect.
+
+These steps will have to be repeated every time you update the plugin, either
+manually or through qBittorrent.
 
 ### BakaBT
 Because BakaBT requires your login info, this plugin requires a bit more work than most.
@@ -54,7 +75,7 @@ You can do this by editing these specific lines (lineno. 52:53).
     ##########################################################################
     ...
 ```
-Now replace the "username" and "password" with *your* username and password, surrounded by quotation marks.  
+Now replace the "username" and "password" with *your* username and password, surrounded by quotation marks.
 So if your username is `foobar` and your `password` is bazqux these lines should read:
 ```python
     ...

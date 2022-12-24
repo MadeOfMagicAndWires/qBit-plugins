@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-#VERSION: 1.1
+#VERSION: 1.2
 #AUTHORS: Joost Bremmer (toost.b@gmail.com)
 #
 #  This program is free software: you can redistribute it and/or modify
@@ -18,22 +18,30 @@
 
 try:
     from HTMLParser import HTMLParser
-except ImportError:
+except ModuleNotFoundError:
     from html.parser import HTMLParser
 
 # import qBT modules
 try:
     from novaprinter import prettyPrinter
     from helpers import retrieve_url
-except:
+except ModuleNotFoundError:
     pass
 
 
 class nyaasi(object):
-    """Class used by qBittorrent to search for torrents"""
+    """Class used by qBittorrent to search for torrents."""
 
     url = 'https://nyaa.si'
     name = 'Nyaa.si'
+
+    # Whether to use magnet links or download torrent files ###################
+    #
+    # Set to 'True' to use magnet links, or 'False' to use torrent files
+    use_magent_links = True
+    #
+    ###########################################################################
+
     # defines which search categories are supported by this search engine
     # and their corresponding id. Possible categories are:
     # 'all', 'movies', 'tv', 'music', 'games', 'anime', 'software', 'pictures',
@@ -49,44 +57,71 @@ class nyaasi(object):
             'movies': '4_0'}
 
     class NyaasiParser(HTMLParser):
-        """ Parses Nyaa.si browse page for search resand prints them"""
-        def __init__(self, res, url):
+        """Parses Nyaa.si browse page for search results and stores them."""
+
+        def __init__(self, res, url, use_magnet=True):
+            """Construct a nyaasi html parser.
+
+            Parameters:
+            :param list res: a list to store the results in
+            :param str url: the base url of the search engine
+            :param str use_magnet: whether to link to magnet links or torrent
+                                   files
+            """
             try:
                 super().__init__()
-            except:
+            except TypeError:
                 #  See: http://stackoverflow.com/questions/9698614/
                 HTMLParser.__init__(self)
 
             self.engine_url = url
+            self.use_magnet_links = use_magnet
             self.results = res
             self.curr = None
             self.td_counter = -1
 
         def handle_starttag(self, tag, attr):
-            """Tell the parser what to do with which tags"""
+            """Tell the parser what to do with which tags."""
             if tag == 'a':
                 self.start_a(attr)
 
         def handle_endtag(self, tag):
+            """Handle the closing of table cells."""
             if tag == 'td':
                 self.start_td()
 
         def start_a(self, attr):
+            """Handle the opening of anchor tags."""
             params = dict(attr)
             # get torrent name
-            if 'title' in params and 'class' not in params and params['href'].startswith('/view/'):
+            if 'title' in params and 'class' not in params \
+                    and params['href'].startswith('/view/'):
                 hit = {
                         'name': params['title'],
                         'desc_link': self.engine_url + params['href']}
                 if not self.curr:
                     hit['engine_url'] = self.engine_url
                     self.curr = hit
-            elif 'href' in params and params['href'].startswith("magnet:?"):
-                if self.curr:
+            elif 'href' in params and self.curr:
+                # skip unrelated links
+                if not params['href'].startswith("magnet:?") and \
+                        not params['href'].endswith(".torrent"):
+                    return
+
+                # check whether to use torrent files or magnet links,
+                # then search for a matching download link, and move on
+                if not self.use_magnet_links and \
+                        params['href'].endswith(".torrent"):
+                    self.curr['link'] = self.engine_url + params['href']
+                    self.td_counter += 1
+
+                elif params['href'].startswith("magnet:?") \
+                        and self.use_magnet_links:
                     self.curr['link'] = params['href']
                     self.td_counter += 1
 
         def start_td(self):
+            """Handle the opening of a table cell tag."""
             # Keep track of timers
             if self.td_counter >= 0:
                 self.td_counter += 1
@@ -99,6 +134,7 @@ class nyaasi(object):
                 self.td_counter = -1
 
         def handle_data(self, data):
+            """Extract data about the torrent."""
             # These fields matter
             if self.td_counter > 0 and self.td_counter <= 5:
                 # Catch the size
@@ -108,13 +144,13 @@ class nyaasi(object):
                 elif self.td_counter == 3:
                     try:
                         self.curr['seeds'] = int(data.strip())
-                    except:
+                    except ValueError:
                         self.curr['seeds'] = -1
                 # Catch the leechers
                 elif self.td_counter == 4:
                     try:
                         self.curr['leech'] = int(data.strip())
-                    except:
+                    except ValueError:
                         self.curr['leech'] = -1
                 # The rest is not supported by prettyPrinter
                 else:
@@ -131,7 +167,6 @@ class nyaasi(object):
                      (e.g. "Ubuntu+Linux")
         :param cat:  the name of a search category, see supported_categories.
         """
-
         url = str("{0}/?f=0&s=seeders&o=desc&c={1}&q={2}"
                   .format(self.url,
                           self.supported_categories.get(cat),
@@ -139,7 +174,7 @@ class nyaasi(object):
 
         hits = []
         page = 1
-        parser = self.NyaasiParser(hits, self.url)
+        parser = self.NyaasiParser(hits, self.url, self.use_magent_links)
         while True:
             res = retrieve_url(url + "&p={}".format(page))
             parser.feed(res)
