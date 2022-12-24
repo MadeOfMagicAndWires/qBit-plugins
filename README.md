@@ -49,9 +49,9 @@ files instead you can edit line **41**:
     ###########################################################################
 ```
 
-by setting the `use_magnet_links` variable to *False*
-(the capitalisation matters here) instead search results will link to torrent
-files instead. Once you've installed any version >=1.2
+by setting the `use_magnet_links` variable to `False`
+(the capitalisation matters here) instead, search results will link to torrent
+files going forward. Once you've installed any version >=1.2
 any changes to this setting should take immediate effect.
 
 These steps will have to be repeated every time you update the plugin, either
