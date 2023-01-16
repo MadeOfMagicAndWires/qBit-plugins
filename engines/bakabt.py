@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-#VERSION: 1.3
+#VERSION: 1.4
 #AUTHORS: Joost Bremmer (toost.b@gmail.com)
 #
 #  This program is free software: you can redistribute it and/or modify
@@ -60,13 +60,13 @@ class bakabt(object):
     # 'all', 'movies', 'tv', 'music', 'games', 'anime', 'software', 'pictures',
     # 'books'
     supported_categories = {
-            'all': 0,
-            'anime': 1,
-            'music': 3,     # Soundtracks
-            'books': 4,     # Manga
-            'movies': 5,
-            'tv': 6,        # Live Action
-            'pictures': 7}  # Artbooks
+            'all': [1, 2, 3, 4, 5, 6, 7, 8, 9],
+            'anime': [1, 2],  # Anime Series and OVA
+            'music': [3, 8],  # Soundtracks and Music Video
+            'books': [4, 9],  # Manga and Light Novel
+            'movies': [5],    # Anime Movie
+            'tv': [6],        # Live Action
+            'pictures': [7]}  # Artbooks
 
     class BakaDownloadParser(HTMLParser):
         """Parses BakaBT torrent page for download link"""
@@ -243,15 +243,11 @@ class bakabt(object):
                      (e.g. "Ubuntu+Linux")
         :param cat:  the name of a search category, see supported_categories.
         """
+        url = "{}/browse.php?limit=100&ordertype=seeders&q={}".format(self.url, what)
         if cat in self.supported_categories:
-            url = "{0}/browse.php?limit=100&ordertype=seeders&q={1}&cat={2}"\
-                    .format(
-                            self.url,
-                            what,
-                            self.supported_categories[cat])
-        else:
-            url = "{0}/browse.php?limit=100&ordertype=seeders&q={1}"\
-                    .format(self.url, what)
+            url += "&reorder=1"
+            for i in self.supported_categories[cat]:
+                url += "&c{}=1".format(i)
 
         hits = []
         parser = self.BakaSearchParser(hits, self.url)
