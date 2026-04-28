@@ -38,7 +38,7 @@ class nyaasi(object):
     # Whether to use magnet links or download torrent files ###################
     #
     # Set to 'True' to use magnet links, or 'False' to use torrent files
-    use_magent_links = True
+    use_magent_links = False
     #
     ###########################################################################
 
